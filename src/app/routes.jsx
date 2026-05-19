@@ -1,0 +1,141 @@
+// app/routes.jsx
+import { lazy, Suspense } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { LoadingScreen } from '@shared/components/ui/LoadingScreen';
+import { ProtectedRoute } from '@features/auth/components/ProtectedRoute';
+import { useTokenExpiration } from '@shared/hooks/useTokenExpiration';
+
+// Eager loading (páginas críticas)
+import { LoginPage } from '@features/auth/pages/LoginPage';
+import { RegisterPage } from '@features/auth/pages/RegisterPage';
+import { SelectUserTypePage } from '@features/auth/pages/SelectUserTypePage';
+import { ForgotPasswordPage } from '@features/auth/pages/ForgotPasswordPage';
+// Páginas de anunciante (renomeadas para evitar filtros)
+import { AnuncianteLogin } from '@features/anuncios/pages/AnuncianteLogin';
+import { AnuncianteRegister } from '@features/anuncios/pages/AnuncianteRegister';
+import { AnuncianteDashboard } from '@features/anuncios/pages/AnuncianteDashboard';
+import { AnuncianteProtectedRoute } from '@features/anuncios/components/AnuncianteProtectedRoute';
+
+// Lazy loading (páginas secundárias)
+const InicioPage = lazy(() => import('../pages/InicioPage').then(m => ({ default: m.InicioPage })));
+const HomePage = lazy(() => import('../pages/HomePage').then(m => ({ default: m.HomePage })));
+const DriverPage = lazy(() => import('@features/rides/pages/DriverPage').then(m => ({ default: m.DriverPage })));
+const PassengerPage = lazy(() => import('@features/rides/pages/PassengerPage').then(m => ({ default: m.PassengerPage })));
+const ActiveRidesPage = lazy(() => import('@features/rides/pages/ActiveRidesPage').then(m => ({ default: m.ActiveRidesPage })));
+const ActiveRequestsPage = lazy(() => import('@features/rides/pages/ActiveRequestsPage').then(m => ({ default: m.ActiveRequestsPage })));
+const PassengerRidesPage = lazy(() => import('@features/rides/pages/PassengerRidesPage').then(m => ({ default: m.PassengerRidesPage })));
+const RideHistoryPage = lazy(() => import('@features/rides/pages/RideHistoryPage').then(m => ({ default: m.RideHistoryPage })));
+const ProfilePage = lazy(() => import('@features/profile/pages/ProfilePage').then(m => ({ default: m.ProfilePage })));
+const VehiclesPage = lazy(() => import('@features/vehicles/pages/VehiclesPage').then(m => ({ default: m.VehiclesPage })));
+const AddressRegisterPage = lazy(() => import('@features/profile/pages/AddressRegisterPage').then(m => ({ default: m.AddressRegisterPage })));
+const VehicleRegisterPage = lazy(() => import('@features/vehicles/pages/VehicleRegisterPage').then(m => ({ default: m.VehicleRegisterPage })));
+const ConversationsPage = lazy(() => import('@features/chat/pages/ConversationsPage').then(m => ({ default: m.ConversationsPage })));
+const ChatPage = lazy(() => import('@features/chat/pages/ChatPage').then(m => ({ default: m.ChatPage })));
+
+export function AppRoutes() {
+    // Monitorar expiração do token globalmente (dentro do Router)
+    useTokenExpiration();
+    
+    return (
+        <Suspense fallback={<LoadingScreen />}>
+            <Routes>
+                {/* Rotas públicas */}
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/select-user-type" element={<SelectUserTypePage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/cadastro" element={<RegisterPage />} />
+                <Route path="/cadastro-endereco" element={<AddressRegisterPage />} />
+                <Route path="/cadastro-veiculo" element={<VehicleRegisterPage />} />
+
+                {/* Rotas protegidas */}
+                <Route path="/" element={
+                    <ProtectedRoute>
+                        <InicioPage />
+                    </ProtectedRoute>
+                } />
+                <Route path="/inicio" element={
+                    <ProtectedRoute>
+                        <InicioPage />
+                    </ProtectedRoute>
+                } />
+                <Route path="/motorista" element={
+                    <ProtectedRoute>
+                        <DriverPage />
+                    </ProtectedRoute>
+                } />
+                <Route path="/passageiro" element={
+                    <ProtectedRoute>
+                        <PassengerPage />
+                    </ProtectedRoute>
+                } />
+                <Route path="/caronas" element={
+                    <ProtectedRoute>
+                        <PassengerPage />
+                    </ProtectedRoute>
+                } />
+                <Route path="/caronas-ativas" element={
+                    <ProtectedRoute>
+                        <ActiveRidesPage />
+                    </ProtectedRoute>
+                } />
+                <Route path="/solicitacoes-ativas" element={
+                    <ProtectedRoute>
+                        <ActiveRequestsPage />
+                    </ProtectedRoute>
+                } />
+                <Route path="/minhas-solicitacoes" element={
+                    <ProtectedRoute>
+                        <PassengerRidesPage />
+                    </ProtectedRoute>
+                } />
+                <Route path="/historico" element={
+                    <ProtectedRoute>
+                        <RideHistoryPage />
+                    </ProtectedRoute>
+                } />
+                <Route path="/oferecer-carona" element={
+                    <ProtectedRoute requiredRole="MOTORISTA">
+                        <DriverPage />
+                    </ProtectedRoute>
+                } />
+                <Route path="/meus-veiculos" element={
+                    <ProtectedRoute requiredRole="MOTORISTA">
+                        <VehiclesPage />
+                    </ProtectedRoute>
+                } />
+                <Route path="/veiculos" element={
+                    <ProtectedRoute requiredRole="MOTORISTA">
+                        <VehiclesPage />
+                    </ProtectedRoute>
+                } />
+                <Route path="/perfil" element={
+                    <ProtectedRoute>
+                        <ProfilePage />
+                    </ProtectedRoute>
+                } />
+                <Route path="/mensagens" element={
+                    <ProtectedRoute>
+                        <ConversationsPage />
+                    </ProtectedRoute>
+                } />
+                <Route path="/chat/:id_solicitacao" element={
+                    <ProtectedRoute>
+                        <ChatPage />
+                    </ProtectedRoute>
+                } />
+
+                {/* Rotas para anunciantes (separadas do fluxo de usuário comum) */}
+                <Route path="/anunciante/login" element={<AnuncianteLogin />} />
+                <Route path="/anunciante/register" element={<AnuncianteRegister />} />
+                <Route path="/anunciante" element={
+                    <AnuncianteProtectedRoute>
+                        <AnuncianteDashboard />
+                    </AnuncianteProtectedRoute>
+                } />
+
+                {/* Redirect para inicio */}
+                <Route path="*" element={<Navigate to="/inicio" replace />} />
+            </Routes>
+        </Suspense>
+    );
+}
