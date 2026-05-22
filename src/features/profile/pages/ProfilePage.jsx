@@ -18,7 +18,7 @@ import {
   FiEdit,
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import { BASE_URL_JAVA_BACKEND } from "../../../../api";
+import { VITE_BASE_URL_JAVA_BACKEND } from "../../../../api";
 
 /**
  * ProfilePage - Página de perfil do usuário
@@ -84,7 +84,7 @@ export function ProfilePage() {
 
   const loadStates = async () => {
     try {
-      const response = await fetch(`${BASE_URL_JAVA_BACKEND}/states`);
+      const response = await fetch(`${VITE_BASE_URL_JAVA_BACKEND}/states`);
       const data = await response.json();
       setStates(data);
       console.log("📍 Estados carregados:", data);
@@ -96,7 +96,7 @@ export function ProfilePage() {
   const loadCitiesByState = async (stateId) => {
     try {
       const response = await fetch(
-        `${BASE_URL_JAVA_BACKEND}/cities/${stateId}`,
+        `${VITE_BASE_URL_JAVA_BACKEND}/cities/${stateId}`,
       );
       const data = await response.json();
       setCities(data);

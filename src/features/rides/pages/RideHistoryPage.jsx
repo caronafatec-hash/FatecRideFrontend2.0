@@ -9,7 +9,7 @@ import { ridesService } from "@features/rides/services/ridesService";
 import { useAuthStore } from "@features/auth/stores/authStore";
 import { toast } from "react-hot-toast";
 import { FiClock } from "react-icons/fi";
-import { BASE_URL_JAVA_BACKEND } from "./../../../../api.js";
+import { VITE_BASE_URL_JAVA_BACKEND } from "./../../../../api.js";
 /**
  * RideHistoryPage - Histórico de caronas
  * Mostra todas as caronas passadas (concluídas ou canceladas)
@@ -94,7 +94,7 @@ export function RideHistoryPage() {
         try {
           // Buscar solicitações concluídas do passageiro
           const response = await fetch(
-            `${BASE_URL_JAVA_BACKEND}/solicitacao/concluidas?pagina=0&itens=50`,
+            `${VITE_BASE_URL_JAVA_BACKEND}/solicitacao/concluidas?pagina=0&itens=50`,
             {
               headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,

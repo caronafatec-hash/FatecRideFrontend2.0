@@ -9,7 +9,7 @@ import { Select } from "@shared/components/ui/Select";
 import { Alert } from "@shared/components/ui/Alert";
 import { Card } from "@shared/components/ui/Card";
 import { addressService } from "@features/profile/services/addressService";
-import { BASE_URL_JAVA_BACKEND } from "./../../../../api.js";
+import { VITE_BASE_URL_JAVA_BACKEND } from "./../../../../api.js";
 /**
  * AddressRegisterPage - Página de cadastro de endereço
  *
@@ -45,7 +45,7 @@ export function AddressRegisterPage() {
   useEffect(() => {
     const fetchStates = async () => {
       try {
-        const response = await fetch(`${BASE_URL_JAVA_BACKEND}/states`);
+        const response = await fetch(`${VITE_BASE_URL_JAVA_BACKEND}/states`);
         const data = await response.json();
         setStates(data);
       } catch (error) {
@@ -61,7 +61,7 @@ export function AddressRegisterPage() {
       const fetchCities = async () => {
         try {
           const response = await fetch(
-            `${BASE_URL_JAVA_BACKEND}/cities/${selectedState}`,
+            `${VITE_BASE_URL_JAVA_BACKEND}/cities/${selectedState}`,
           );
           const data = await response.json();
           setCities(data);
@@ -173,7 +173,7 @@ export function AddressRegisterPage() {
       const endpoint = "/users/criarPassageiro";
 
       // Criar usuário com endereço
-      const response = await fetch(`${BASE_URL_JAVA_BACKEND}${endpoint}`, {
+      const response = await fetch(`${VITE_BASE_URL_JAVA_BACKEND}${endpoint}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
