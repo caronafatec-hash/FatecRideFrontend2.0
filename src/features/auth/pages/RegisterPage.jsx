@@ -10,7 +10,7 @@ import { Select } from "@shared/components/ui/Select";
 import { Alert } from "@shared/components/ui/Alert";
 import { Card } from "@shared/components/ui/Card";
 import { authService } from "../services/authService";
-import { VITE_BASE_URL_JAVA_BACKEND } from "./../../../../api.js";
+import { BASE_URL_JAVA_BACKEND } from "./../../../../api.js";
 /**
  * RegisterPage - Página de criação de nova conta
  *
@@ -82,8 +82,8 @@ export function RegisterPage() {
           //fetch('http://localhost:8080/genders').then(r => r.json()),
           //fetch('http://localhost:8080/courses').then(r => r.json())
 
-          fetch(`${VITE_BASE_URL_JAVA_BACKEND}/genders`).then((r) => r.json()),
-          fetch(`${VITE_BASE_URL_JAVA_BACKEND}/courses`).then((r) => r.json()),
+          fetch(`${BASE_URL_JAVA_BACKEND}/genders`).then((r) => r.json()),
+          fetch(`${BASE_URL_JAVA_BACKEND}/courses`).then((r) => r.json()),
         ]);
 
         setGenders(gendersRes);

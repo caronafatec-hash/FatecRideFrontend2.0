@@ -10,7 +10,7 @@ import { Spinner } from "@shared/components/ui/Spinner";
 import { useAuthStore } from "@features/auth/stores/authStore";
 import { SimpleChatModal } from "@features/chat/components/SimpleChatModal";
 import { sendRideAcceptedMessage } from "@features/chat/services/autoMessageService";
-import { VITE_BASE_URL_JAVA_BACKEND } from "./../../../../api.js";
+import { BASE_URL_JAVA_BACKEND } from "./../../../../api.js";
 /**
  * ActiveRidesPage - Página de gerenciamento de caronas ativas
  *
@@ -102,7 +102,7 @@ export function ActiveRidesPage() {
       // MOTORISTA: Buscar caronas criadas
       console.log("\n📡 Buscando caronas ativas do motorista...");
       const ridesResponse = await fetch(
-        `${VITE_BASE_URL_JAVA_BACKEND}/rides/corridasAtivas`,
+        `${BASE_URL_JAVA_BACKEND}/rides/corridasAtivas`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -121,7 +121,7 @@ export function ActiveRidesPage() {
         try {
           console.log("📡 Buscando solicitações para minhas caronas...");
           const requestsResponse = await fetch(
-            `${VITE_BASE_URL_JAVA_BACKEND}/rides/requestsForMyRide`,
+            `${BASE_URL_JAVA_BACKEND}/rides/requestsForMyRide`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -199,7 +199,7 @@ export function ActiveRidesPage() {
       setProcessingId(requestId);
 
       const response = await fetch(
-        `${VITE_BASE_URL_JAVA_BACKEND}/rides/${requestId}/acept`,
+        `${BASE_URL_JAVA_BACKEND}/rides/${requestId}/acept`,
         {
           method: "PUT",
           headers: {
@@ -247,7 +247,7 @@ export function ActiveRidesPage() {
       setProcessingId(requestId);
 
       const response = await fetch(
-        `${VITE_BASE_URL_JAVA_BACKEND}/solicitacao/cancelar/${requestId}`,
+        `${BASE_URL_JAVA_BACKEND}/solicitacao/cancelar/${requestId}`,
         {
           method: "PUT",
           headers: {
@@ -287,7 +287,7 @@ export function ActiveRidesPage() {
 
       // Tentar endpoint finalizar (mais comum no backend)
       const response = await fetch(
-        `${VITE_BASE_URL_JAVA_BACKEND}/rides/finalizar/${rideId}`,
+        `${BASE_URL_JAVA_BACKEND}/rides/finalizar/${rideId}`,
         {
           method: "PUT",
           headers: {
@@ -333,7 +333,7 @@ export function ActiveRidesPage() {
       setProcessingId(`cancel-${rideId}`);
 
       const response = await fetch(
-        `${VITE_BASE_URL_JAVA_BACKEND}/rides/cancelar/${rideId}`,
+        `${BASE_URL_JAVA_BACKEND}/rides/cancelar/${rideId}`,
         {
           method: "PUT",
           headers: {
