@@ -1,4 +1,3 @@
- 
 import { PageContainer } from "@shared/components/layout/PageContainer";
 import { Card } from "@shared/components/ui/Card";
 import { Button } from "@shared/components/ui/Button";
@@ -9,8 +8,17 @@ import { authService } from "@features/auth/services/authService";
 import { addressService } from "@features/profile/services/addressService";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "react-hot-toast";
-import { FiUser, FiMapPin, FiSave, FiX, FiTrash2, FiAlertTriangle, FiEdit } from "react-icons/fi";
+import {
+  FiUser,
+  FiMapPin,
+  FiSave,
+  FiX,
+  FiTrash2,
+  FiAlertTriangle,
+  FiEdit,
+} from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import { BASE_URL_JAVA_BACKEND } from "../../../../api";
 
 /**
  * ProfilePage - Página de perfil do usuário
@@ -19,11 +27,16 @@ import { useNavigate } from "react-router-dom";
 
 export function ProfilePage() {
   const navigate = useNavigate();
-  const { user, updateUser: updateAuthUser, logout, loadUserData: loadAuthUserData } = useAuthStore();
+  const {
+    user,
+    updateUser: updateAuthUser,
+    logout,
+    loadUserData: loadAuthUserData,
+  } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [loadingAddress, setLoadingAddress] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  
+
   // Carregar dados do usuário ao montar
   useEffect(() => {
     loadUserData();
@@ -31,7 +44,7 @@ export function ProfilePage() {
     // Forçar reload do authStore para garantir tipo correto
     loadAuthUserData();
   }, []);
-  
+
   // Estado para dados pessoais
   const [personalData, setPersonalData] = useState({
     nome: "",
@@ -41,9 +54,9 @@ export function ProfilePage() {
     foto: "",
     senha: "",
     confirmarSenha: "",
-    senhaAtual: ""
+    senhaAtual: "",
   });
-  
+
   // Estado para endereço
   const [addressData, setAddressData] = useState({
     id: null,
@@ -52,9 +65,9 @@ export function ProfilePage() {
     bairro: "",
     cep: "",
     cidade: "",
-    estado: ""
+    estado: "",
   });
-  
+
   const [isEditingPersonal, setIsEditingPersonal] = useState(false);
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [loadingCep, setLoadingCep] = useState(false);
@@ -71,24 +84,26 @@ export function ProfilePage() {
 
   const loadStates = async () => {
     try {
-      const response = await fetch('http://localhost:8080/states');
+      const response = await fetch(`${BASE_URL_JAVA_BACKEND}/states`);
       const data = await response.json();
       setStates(data);
-      console.log('📍 Estados carregados:', data);
+      console.log("📍 Estados carregados:", data);
     } catch (error) {
-      console.error('❌ Erro ao carregar estados:', error);
+      console.error("❌ Erro ao carregar estados:", error);
     }
   };
 
   const loadCitiesByState = async (stateId) => {
     try {
-      const response = await fetch(`http://localhost:8080/cities/${stateId}`);
+      const response = await fetch(
+        `${BASE_URL_JAVA_BACKEND}/cities/${stateId}`,
+      );
       const data = await response.json();
       setCities(data);
-      console.log('🏙️ Cidades carregadas:', data);
+      console.log("🏙️ Cidades carregadas:", data);
       return data;
     } catch (error) {
-      console.error('❌ Erro ao carregar cidades:', error);
+      console.error("❌ Erro ao carregar cidades:", error);
       return [];
     }
   };
@@ -97,13 +112,16 @@ export function ProfilePage() {
     try {
       setLoading(true);
       const userData = await authService.getCurrentUser();
-      console.log('📦 Dados completos do usuário:', JSON.stringify(userData, null, 2));
-      
+      console.log(
+        "📦 Dados completos do usuário:",
+        JSON.stringify(userData, null, 2),
+      );
+
       // Formatar telefone para exibição
-      const formattedPhone = userData.telefone 
-        ? formatPhone(userData.telefone) 
+      const formattedPhone = userData.telefone
+        ? formatPhone(userData.telefone)
         : "";
-      
+
       setPersonalData({
         nome: userData.nome || "",
         sobrenome: userData.sobrenome || "",
@@ -112,18 +130,18 @@ export function ProfilePage() {
         foto: userData.foto || "",
         senha: "",
         confirmarSenha: "",
-        senhaAtual: ""
+        senhaAtual: "",
       });
-      
+
       // Buscar endereço do endpoint separado GET /address
       try {
-        console.log('🏠 Buscando endereço em GET /address...');
+        console.log("🏠 Buscando endereço em GET /address...");
         const addressResponse = await addressService.getAddress();
-        console.log('📍 Resposta de GET /address:', addressResponse);
-        
+        console.log("📍 Resposta de GET /address:", addressResponse);
+
         if (addressResponse) {
           const cidadeNome = addressResponse.city || "";
-          
+
           setAddressData({
             id: addressResponse.id || null,
             logradouro: addressResponse.logradouro || "",
@@ -131,59 +149,66 @@ export function ProfilePage() {
             bairro: addressResponse.bairro || "",
             cep: addressResponse.cep || "",
             cidade: cidadeNome,
-            estado: "" // Será preenchido ao encontrar nos estados
+            estado: "", // Será preenchido ao encontrar nos estados
           });
-          
+
           // Tentar identificar estado e cidade pelos nomes
           // Precisamos buscar em todos os estados até encontrar a cidade
           if (cidadeNome && states.length > 0) {
-            console.log('🔍 Procurando cidade nos estados:', cidadeNome);
+            console.log("🔍 Procurando cidade nos estados:", cidadeNome);
             for (const state of states) {
               const citiesData = await loadCitiesByState(state.id);
-              const cityFound = citiesData.find(c => 
-                c.nome.toLowerCase() === cidadeNome.toLowerCase()
+              const cityFound = citiesData.find(
+                (c) => c.nome.toLowerCase() === cidadeNome.toLowerCase(),
               );
-              
+
               if (cityFound) {
-                console.log('✅ Cidade encontrada:', cityFound.nome, 'no estado:', state.uf);
+                console.log(
+                  "✅ Cidade encontrada:",
+                  cityFound.nome,
+                  "no estado:",
+                  state.uf,
+                );
                 setSelectedStateId(state.id);
                 setSelectedCityId(cityFound.id);
-                handleAddressChange('estado', state.uf);
+                handleAddressChange("estado", state.uf);
                 break;
               }
             }
           }
-          
-          console.log('✅ Endereço carregado');
+
+          console.log("✅ Endereço carregado");
         }
       } catch (addressError) {
-        console.log('⚠️ Erro ao buscar endereço:', addressError.response?.status);
+        console.log(
+          "⚠️ Erro ao buscar endereço:",
+          addressError.response?.status,
+        );
         if (addressError.response?.status === 404) {
-          console.log('💡 Nenhum endereço cadastrado para este usuário');
+          console.log("💡 Nenhum endereço cadastrado para este usuário");
         } else {
-          console.error('❌ Erro ao buscar endereço:', addressError);
+          console.error("❌ Erro ao buscar endereço:", addressError);
         }
       }
-      
     } catch (error) {
-      console.error('❌ Erro ao carregar dados:', error);
-      console.error('❌ Detalhes:', error.response?.data);
-      toast.error('Erro ao carregar dados do perfil');
+      console.error("❌ Erro ao carregar dados:", error);
+      console.error("❌ Detalhes:", error.response?.data);
+      toast.error("Erro ao carregar dados do perfil");
     } finally {
       setLoading(false);
     }
   };
 
   const handlePersonalChange = (field, value) => {
-    setPersonalData(prev => ({ ...prev, [field]: value }));
+    setPersonalData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleAddressChange = (field, value) => {
-    setAddressData(prev => ({ ...prev, [field]: value }));
-    
+    setAddressData((prev) => ({ ...prev, [field]: value }));
+
     // Se for CEP e tiver 8 dígitos, buscar automaticamente
-    if (field === 'cep') {
-      const cleanCep = value.replace(/\D/g, '');
+    if (field === "cep") {
+      const cleanCep = value.replace(/\D/g, "");
       if (cleanCep.length === 8) {
         handleCepSearch(cleanCep);
       }
@@ -192,105 +217,108 @@ export function ProfilePage() {
 
   const handleCepSearch = async (cep) => {
     try {
-      console.log('🔍 Buscando CEP:', cep);
+      console.log("🔍 Buscando CEP:", cep);
       const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
       const data = await response.json();
-      
+
       if (data.erro) {
-        toast.error('CEP não encontrado');
+        toast.error("CEP não encontrado");
         return;
       }
-      
-      console.log('✅ CEP encontrado:', data);
-      
+
+      console.log("✅ CEP encontrado:", data);
+
       // Autocompletar campos
-      setAddressData(prev => ({
+      setAddressData((prev) => ({
         ...prev,
         logradouro: data.logradouro || prev.logradouro,
         bairro: data.bairro || prev.bairro,
         cidade: data.localidade || prev.cidade,
-        estado: data.uf || prev.estado
+        estado: data.uf || prev.estado,
       }));
-      
-      toast.success('CEP encontrado! Endereço preenchido automaticamente.');
+
+      toast.success("CEP encontrado! Endereço preenchido automaticamente.");
     } catch (error) {
-      console.error('❌ Erro ao buscar CEP:', error);
-      toast.error('Erro ao buscar CEP');
+      console.error("❌ Erro ao buscar CEP:", error);
+      toast.error("Erro ao buscar CEP");
     }
   };
 
   const formatPhone = (value) => {
-    const numbers = value.replace(/\D/g, '');
+    const numbers = value.replace(/\D/g, "");
     if (numbers.length <= 11) {
-      return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+      return numbers.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
     }
     return value;
   };
 
   const formatCep = (value) => {
-    const numbers = value.replace(/\D/g, '');
+    const numbers = value.replace(/\D/g, "");
     if (numbers.length <= 8) {
-      return numbers.replace(/(\d{5})(\d{3})/, '$1-$2');
+      return numbers.replace(/(\d{5})(\d{3})/, "$1-$2");
     }
     return value;
   };
 
   const handleCepChange = async (cep) => {
     const formattedCep = formatCep(cep);
-    handleAddressChange('cep', formattedCep);
-    
-    const cleanCep = cep.replace(/\D/g, '');
-    
+    handleAddressChange("cep", formattedCep);
+
+    const cleanCep = cep.replace(/\D/g, "");
+
     // Se o CEP tiver 8 dígitos, buscar no ViaCEP
     if (cleanCep.length === 8) {
       setLoadingCep(true);
       try {
-        console.log('🔍 Buscando CEP:', cleanCep);
-        const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+        console.log("🔍 Buscando CEP:", cleanCep);
+        const response = await fetch(
+          `https://viacep.com.br/ws/${cleanCep}/json/`,
+        );
         const data = await response.json();
-        
+
         if (data.erro) {
-          toast.error('CEP não encontrado');
+          toast.error("CEP não encontrado");
           setLoadingCep(false);
           return;
         }
-        
-        console.log('📍 Dados do ViaCEP:', data);
-        
+
+        console.log("📍 Dados do ViaCEP:", data);
+
         // Preencher campos automaticamente
-        handleAddressChange('logradouro', data.logradouro || '');
-        handleAddressChange('bairro', data.bairro || '');
-        handleAddressChange('cidade', data.localidade || '');
-        handleAddressChange('estado', data.uf || '');
-        
+        handleAddressChange("logradouro", data.logradouro || "");
+        handleAddressChange("bairro", data.bairro || "");
+        handleAddressChange("cidade", data.localidade || "");
+        handleAddressChange("estado", data.uf || "");
+
         // Buscar estado no backend pelo UF
-        const stateFound = states.find(s => s.uf === data.uf);
+        const stateFound = states.find((s) => s.uf === data.uf);
         if (stateFound) {
-          console.log('🗺️ Estado encontrado:', stateFound);
+          console.log("🗺️ Estado encontrado:", stateFound);
           setSelectedStateId(stateFound.id);
-          
+
           // Carregar cidades desse estado
           const citiesData = await loadCitiesByState(stateFound.id);
-          
+
           // Encontrar a cidade pelo nome
-          const cityFound = citiesData.find(c => 
-            c.nome.toLowerCase() === data.localidade.toLowerCase()
+          const cityFound = citiesData.find(
+            (c) => c.nome.toLowerCase() === data.localidade.toLowerCase(),
           );
-          
+
           if (cityFound) {
-            console.log('🏙️ Cidade encontrada:', cityFound);
+            console.log("🏙️ Cidade encontrada:", cityFound);
             setSelectedCityId(cityFound.id);
-            toast.success('Endereço preenchido automaticamente!');
+            toast.success("Endereço preenchido automaticamente!");
           } else {
-            toast.warning('Cidade não encontrada no sistema. Selecione manualmente.');
+            toast.warning(
+              "Cidade não encontrada no sistema. Selecione manualmente.",
+            );
           }
         } else {
-          toast.warning('Estado não encontrado no sistema.');
+          toast.warning("Estado não encontrado no sistema.");
         }
-        
       } catch (error) {
-        console.error('❌ Erro ao buscar CEP:', error);
-        toast.error('Erro ao buscar CEP');
+        console.error("❌ Erro ao buscar CEP:", error);
+        toast.error("Erro ao buscar CEP");
       } finally {
         setLoadingCep(false);
       }
@@ -300,10 +328,10 @@ export function ProfilePage() {
   const handleSavePersonal = async () => {
     try {
       setLoading(true);
-      
+
       // Validação básica
       if (!personalData.nome || !personalData.sobrenome) {
-        toast.error('Nome e sobrenome são obrigatórios');
+        toast.error("Nome e sobrenome são obrigatórios");
         setLoading(false);
         return;
       }
@@ -311,12 +339,12 @@ export function ProfilePage() {
       // Validar senha se foi preenchida
       if (personalData.senha || personalData.confirmarSenha) {
         if (personalData.senha !== personalData.confirmarSenha) {
-          toast.error('As senhas não coincidem');
+          toast.error("As senhas não coincidem");
           setLoading(false);
           return;
         }
         if (personalData.senha.length < 6) {
-          toast.error('A senha deve ter no mínimo 6 caracteres');
+          toast.error("A senha deve ter no mínimo 6 caracteres");
           setLoading(false);
           return;
         }
@@ -324,17 +352,17 @@ export function ProfilePage() {
 
       // Exigir que o usuário informe a senha atual para confirmar a atualização
       if (!personalData.senhaAtual) {
-        toast.error('Digite sua senha atual para confirmar a atualização');
+        toast.error("Digite sua senha atual para confirmar a atualização");
         setLoading(false);
         return;
       }
 
-      const cleanPhone = personalData.telefone.replace(/\D/g, '');
-      
+      const cleanPhone = personalData.telefone.replace(/\D/g, "");
+
       // Buscar dados completos do usuário para não perder informações
       const currentUserData = await authService.getCurrentUser();
-      console.log('📋 Dados atuais completos:', currentUserData);
-      
+      console.log("📋 Dados atuais completos:", currentUserData);
+
       // Preparar payload: enviar a senha atual para confirmação (`senhaAtual`)
       // e enviar `senha` somente se o usuário informou uma nova senha.
       const updateData = {
@@ -347,53 +375,56 @@ export function ProfilePage() {
         genderId: currentUserData.genderId,
         courseId: currentUserData.courseId,
         // enviar campo compatível com o backend
-        rawPassword: personalData.senhaAtual
+        rawPassword: personalData.senhaAtual,
       };
 
       if (personalData.senha) {
         updateData.senha = personalData.senha;
       }
 
-      console.log('📤 Enviando para PUT /users:', {
+      console.log("📤 Enviando para PUT /users:", {
         ...updateData,
-        senha: personalData.senha ? '***NOVA SENHA***' : '***SEM ALTERAÇÃO DE SENHA***',
-        rawPassword: '***SENHA ATUAL***'
+        senha: personalData.senha
+          ? "***NOVA SENHA***"
+          : "***SEM ALTERAÇÃO DE SENHA***",
+        rawPassword: "***SENHA ATUAL***",
       });
-      
+
       const response = await authService.updateUser(updateData);
-      console.log('✅ Resposta do backend:', response);
-      
+      console.log("✅ Resposta do backend:", response);
+
       // Atualizar authStore localmente
       updateAuthUser({
         name: `${personalData.nome} ${personalData.sobrenome}`,
         email: personalData.email,
-        foto: personalData.foto || ""
+        foto: personalData.foto || "",
       });
-      
+
       // Recarregar dados do backend para garantir sincronização
       await loadAuthUserData();
-      
-      toast.success('Dados pessoais atualizados com sucesso!');
+
+      toast.success("Dados pessoais atualizados com sucesso!");
       setIsEditingPersonal(false);
-      
+
       // Limpar campos de senha
-      setPersonalData(prev => ({
+      setPersonalData((prev) => ({
         ...prev,
         senha: "",
         confirmarSenha: "",
-        senhaAtual: ""
+        senhaAtual: "",
       }));
-      
+
       await loadUserData();
     } catch (error) {
-      console.error('❌ Erro ao atualizar dados:', error);
-      console.error('❌ Response:', error.response?.data);
-      console.error('❌ Status:', error.response?.status);
-      
-      const errorMsg = error.response?.data?.message 
-        || error.response?.data?.error
-        || 'Erro ao atualizar dados pessoais';
-      
+      console.error("❌ Erro ao atualizar dados:", error);
+      console.error("❌ Response:", error.response?.data);
+      console.error("❌ Status:", error.response?.status);
+
+      const errorMsg =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Erro ao atualizar dados pessoais";
+
       toast.error(errorMsg);
     } finally {
       setLoading(false);
@@ -418,7 +449,7 @@ export function ProfilePage() {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (ev) => {
-      handlePersonalChange('foto', ev.target.result);
+      handlePersonalChange("foto", ev.target.result);
     };
     reader.readAsDataURL(file);
   };
@@ -426,60 +457,66 @@ export function ProfilePage() {
   const handleSaveAddress = async () => {
     try {
       setLoadingAddress(true);
-      
+
       // Validação básica
       if (!addressData.cep || !addressData.logradouro || !addressData.numero) {
-        toast.error('CEP, logradouro e número são obrigatórios');
+        toast.error("CEP, logradouro e número são obrigatórios");
         setLoadingAddress(false);
         return;
       }
 
       if (!addressData.id) {
-        toast.error('ID do endereço não encontrado. Não é possível atualizar.');
+        toast.error("ID do endereço não encontrado. Não é possível atualizar.");
         setLoadingAddress(false);
         return;
       }
 
       if (!selectedCityId) {
-        toast.error('Cidade não selecionada. Digite um CEP válido para preencher automaticamente.');
+        toast.error(
+          "Cidade não selecionada. Digite um CEP válido para preencher automaticamente.",
+        );
         setLoadingAddress(false);
         return;
       }
 
-      const cleanCep = addressData.cep.replace(/\D/g, '');
-      
+      const cleanCep = addressData.cep.replace(/\D/g, "");
+
       // Preparar dados para envio (UserAddressesDTO)
       const updateData = {
         cityId: selectedCityId, // Usando o ID correto da cidade
         logradouro: addressData.logradouro,
         numero: addressData.numero,
         bairro: addressData.bairro,
-        cep: cleanCep
+        cep: cleanCep,
       };
 
-      console.log('📤 Enviando para PUT /address/' + addressData.id);
-      console.log('📦 Payload:', JSON.stringify(updateData, null, 2));
-      console.log('🏙️ Cidade ID:', selectedCityId);
-      console.log('🗺️ Estado ID:', selectedStateId);
-      
-      const response = await addressService.updateAddress(addressData.id, updateData);
-      console.log('✅ Resposta do backend:', response);
-      
-      toast.success('Endereço atualizado com sucesso!');
+      console.log("📤 Enviando para PUT /address/" + addressData.id);
+      console.log("📦 Payload:", JSON.stringify(updateData, null, 2));
+      console.log("🏙️ Cidade ID:", selectedCityId);
+      console.log("🗺️ Estado ID:", selectedStateId);
+
+      const response = await addressService.updateAddress(
+        addressData.id,
+        updateData,
+      );
+      console.log("✅ Resposta do backend:", response);
+
+      toast.success("Endereço atualizado com sucesso!");
       setIsEditingAddress(false);
       await loadUserData();
     } catch (error) {
-      console.error('❌ Erro ao atualizar endereço:', error);
-      console.error('❌ Response completo:', error.response);
-      console.error('❌ Response data:', error.response?.data);
-      console.error('❌ Status:', error.response?.status);
-      console.error('❌ Message:', error.message);
-      
-      const errorMsg = error.response?.data?.message 
-        || error.response?.data?.error
-        || error.message
-        || 'Erro ao atualizar endereço';
-      
+      console.error("❌ Erro ao atualizar endereço:", error);
+      console.error("❌ Response completo:", error.response);
+      console.error("❌ Response data:", error.response?.data);
+      console.error("❌ Status:", error.response?.status);
+      console.error("❌ Message:", error.message);
+
+      const errorMsg =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Erro ao atualizar endereço";
+
       toast.error(errorMsg);
     } finally {
       setLoadingAddress(false);
@@ -494,18 +531,18 @@ export function ProfilePage() {
   const handleDeleteAccount = async () => {
     try {
       setLoading(true);
-      
+
       // Chamar endpoint de exclusão de conta (ajuste conforme seu backend)
       await authService.deleteAccount();
-      
-      toast.success('Conta excluída com sucesso');
-      
+
+      toast.success("Conta excluída com sucesso");
+
       // Fazer logout e redirecionar
       logout();
-      navigate('/login');
+      navigate("/login");
     } catch (error) {
-      console.error('❌ Erro ao excluir conta:', error);
-      toast.error('Erro ao excluir conta. Tente novamente.');
+      console.error("❌ Erro ao excluir conta:", error);
+      toast.error("Erro ao excluir conta. Tente novamente.");
     } finally {
       setLoading(false);
       setShowDeleteModal(false);
@@ -519,7 +556,6 @@ export function ProfilePage() {
       centerTitle
     >
       <div className="max-w-4xl mx-auto space-y-6">
-        
         {/* Card: Informações Pessoais */}
         <Card>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
@@ -527,21 +563,28 @@ export function ProfilePage() {
             <div className="flex flex-col items-center space-y-4">
               <div className="relative">
                 {personalData.foto ? (
-                  <img 
-                    src={personalData.foto} 
-                    alt="Foto de perfil" 
+                  <img
+                    src={personalData.foto}
+                    alt="Foto de perfil"
                     className="w-28 h-28 rounded-full object-cover ring-4 ring-white shadow-md"
                   />
                 ) : (
                   <div className="w-28 h-28 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-md text-white text-3xl font-bold">
-                    {personalData.nome && personalData.sobrenome
-                      ? `${personalData.nome.charAt(0)}${personalData.sobrenome.charAt(0)}`.toUpperCase()
-                      : <FiUser className="w-12 h-12" />
-                    }
+                    {personalData.nome && personalData.sobrenome ? (
+                      `${personalData.nome.charAt(0)}${personalData.sobrenome.charAt(0)}`.toUpperCase()
+                    ) : (
+                      <FiUser className="w-12 h-12" />
+                    )}
                   </div>
                 )}
 
-                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarChange}
+                />
 
                 {!isEditingPersonal && (
                   <button
@@ -555,14 +598,24 @@ export function ProfilePage() {
               </div>
 
               <div className="text-center">
-                <p className="text-lg font-semibold">{personalData.nome} {personalData.sobrenome}</p>
+                <p className="text-lg font-semibold">
+                  {personalData.nome} {personalData.sobrenome}
+                </p>
                 <p className="text-sm text-gray-500">{personalData.email}</p>
               </div>
 
               {isEditingPersonal && (
                 <div className="flex flex-col w-full gap-2">
-                  <Button onClick={handleAvatarUploadClick} size="sm">Alterar Foto</Button>
-                  <Button variant="outline" size="sm" onClick={() => handlePersonalChange('foto', '')}>Remover Foto</Button>
+                  <Button onClick={handleAvatarUploadClick} size="sm">
+                    Alterar Foto
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePersonalChange("foto", "")}
+                  >
+                    Remover Foto
+                  </Button>
                 </div>
               )}
             </div>
@@ -575,8 +628,12 @@ export function ProfilePage() {
                     <FiUser className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold">Informações Pessoais</h3>
-                    <p className="text-sm text-gray-600">Seus dados cadastrais</p>
+                    <h3 className="text-lg font-semibold">
+                      Informações Pessoais
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Seus dados cadastrais
+                    </p>
                   </div>
                 </div>
 
@@ -584,16 +641,16 @@ export function ProfilePage() {
                   <div className="w-20" />
                 ) : (
                   <div className="flex gap-2">
-                    <Button 
-                      onClick={handleSavePersonal} 
+                    <Button
+                      onClick={handleSavePersonal}
                       disabled={loading}
                       size="sm"
                       className="gap-2"
                     >
-                      <FiSave /> {loading ? 'Salvando...' : 'Salvar'}
+                      <FiSave /> {loading ? "Salvando..." : "Salvar"}
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       onClick={handleCancelPersonal}
                       disabled={loading}
                       size="sm"
@@ -610,21 +667,25 @@ export function ProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Nome
                   </label>
-                  <Input 
-                    value={personalData.nome} 
-                    onChange={(e) => handlePersonalChange('nome', e.target.value)}
+                  <Input
+                    value={personalData.nome}
+                    onChange={(e) =>
+                      handlePersonalChange("nome", e.target.value)
+                    }
                     disabled={!isEditingPersonal}
                     placeholder="Seu nome"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Sobrenome
                   </label>
-                  <Input 
-                    value={personalData.sobrenome} 
-                    onChange={(e) => handlePersonalChange('sobrenome', e.target.value)}
+                  <Input
+                    value={personalData.sobrenome}
+                    onChange={(e) =>
+                      handlePersonalChange("sobrenome", e.target.value)
+                    }
                     disabled={!isEditingPersonal}
                     placeholder="Seu sobrenome"
                   />
@@ -634,21 +695,28 @@ export function ProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Email
                   </label>
-                  <Input 
-                    value={personalData.email} 
+                  <Input
+                    value={personalData.email}
                     disabled
                     className="bg-gray-50"
                   />
-                  <p className="text-xs text-gray-500 mt-1">O email não pode ser alterado</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    O email não pode ser alterado
+                  </p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Telefone
                   </label>
-                  <Input 
-                    value={personalData.telefone} 
-                    onChange={(e) => handlePersonalChange('telefone', formatPhone(e.target.value))}
+                  <Input
+                    value={personalData.telefone}
+                    onChange={(e) =>
+                      handlePersonalChange(
+                        "telefone",
+                        formatPhone(e.target.value),
+                      )
+                    }
                     disabled={!isEditingPersonal}
                     placeholder="(11) 98765-4321"
                     maxLength={15}
@@ -661,11 +729,11 @@ export function ProfilePage() {
                   </label>
                   <Input
                     value={
-                      user?.tipo === "MOTORISTA" 
-                        ? "Motorista" 
-                        : user?.tipo === "AMBOS" 
-                        ? "Motorista e Passageiro" 
-                        : "Passageiro"
+                      user?.tipo === "MOTORISTA"
+                        ? "Motorista"
+                        : user?.tipo === "AMBOS"
+                          ? "Motorista e Passageiro"
+                          : "Passageiro"
                     }
                     disabled
                     className="bg-gray-50"
@@ -676,27 +744,45 @@ export function ProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Foto (URL)
                   </label>
-                  <Input 
-                    value={personalData.foto} 
-                    onChange={(e) => handlePersonalChange('foto', e.target.value)}
+                  <Input
+                    value={personalData.foto}
+                    onChange={(e) =>
+                      handlePersonalChange("foto", e.target.value)
+                    }
                     disabled={!isEditingPersonal}
                     placeholder="https://images.unsplash.com/photo-xxx/image.jpg"
                     type="url"
                   />
                   <div className="text-xs mt-1 space-y-1">
                     {personalData.foto ? (
-                      <p className="text-green-600">✓ URL da foto configurada</p>
+                      <p className="text-green-600">
+                        ✓ URL da foto configurada
+                      </p>
                     ) : (
-                      <p className="text-gray-500">Insira a URL direta de uma imagem</p>
+                      <p className="text-gray-500">
+                        Insira a URL direta de uma imagem
+                      </p>
                     )}
                     {isEditingPersonal && (
                       <div className="bg-blue-50 border border-blue-200 rounded p-2 mt-2">
-                        <p className="text-blue-700 font-medium">💡 Como obter URL de imagem:</p>
+                        <p className="text-blue-700 font-medium">
+                          💡 Como obter URL de imagem:
+                        </p>
                         <ul className="text-blue-600 text-xs mt-1 space-y-1 ml-4 list-disc">
-                          <li>No Unsplash: clique com botão direito na imagem → "Copiar endereço da imagem"</li>
-                          <li>A URL deve terminar com .jpg, .png, .webp, etc.</li>
-                          <li>Exemplo correto: https://images.unsplash.com/photo-123/image.jpg</li>
-                          <li>❌ Não use URLs de páginas (sem .jpg no final)</li>
+                          <li>
+                            No Unsplash: clique com botão direito na imagem →
+                            "Copiar endereço da imagem"
+                          </li>
+                          <li>
+                            A URL deve terminar com .jpg, .png, .webp, etc.
+                          </li>
+                          <li>
+                            Exemplo correto:
+                            https://images.unsplash.com/photo-123/image.jpg
+                          </li>
+                          <li>
+                            ❌ Não use URLs de páginas (sem .jpg no final)
+                          </li>
                         </ul>
                       </div>
                     )}
@@ -712,23 +798,31 @@ export function ProfilePage() {
                       </label>
                       <PasswordInput
                         value={personalData.senhaAtual}
-                        onChange={(e) => handlePersonalChange('senhaAtual', e.target.value)}
+                        onChange={(e) =>
+                          handlePersonalChange("senhaAtual", e.target.value)
+                        }
                         placeholder="Digite sua senha atual"
                         autoComplete="current-password"
                       />
-                      <p className="text-xs text-gray-500 mt-1">Para confirmar as alterações, informe sua senha atual.</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Para confirmar as alterações, informe sua senha atual.
+                      </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Nova Senha (opcional)
                       </label>
                       <PasswordInput
-                        value={personalData.senha} 
-                        onChange={(e) => handlePersonalChange('senha', e.target.value)}
+                        value={personalData.senha}
+                        onChange={(e) =>
+                          handlePersonalChange("senha", e.target.value)
+                        }
                         placeholder="Deixe em branco para manter a atual"
                         autoComplete="new-password"
                       />
-                      <p className="text-xs text-gray-500 mt-1">Mínimo 6 caracteres</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Mínimo 6 caracteres
+                      </p>
                     </div>
 
                     <div>
@@ -736,8 +830,10 @@ export function ProfilePage() {
                         Confirmar Nova Senha
                       </label>
                       <PasswordInput
-                        value={personalData.confirmarSenha} 
-                        onChange={(e) => handlePersonalChange('confirmarSenha', e.target.value)}
+                        value={personalData.confirmarSenha}
+                        onChange={(e) =>
+                          handlePersonalChange("confirmarSenha", e.target.value)
+                        }
                         placeholder="Repita a nova senha"
                         autoComplete="new-password"
                       />
@@ -759,14 +855,16 @@ export function ProfilePage() {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold">Endereço</h3>
-                  <p className="text-sm text-gray-600">Seu endereço cadastrado</p>
+                  <p className="text-sm text-gray-600">
+                    Seu endereço cadastrado
+                  </p>
                 </div>
               </div>
-              
+
               {!isEditingAddress ? (
-                <Button 
-                  onClick={() => setIsEditingAddress(true)} 
-                  size="sm" 
+                <Button
+                  onClick={() => setIsEditingAddress(true)}
+                  size="sm"
                   variant="outline"
                   disabled={!addressData.id}
                 >
@@ -774,16 +872,16 @@ export function ProfilePage() {
                 </Button>
               ) : (
                 <div className="flex gap-2">
-                  <Button 
-                    onClick={handleSaveAddress} 
+                  <Button
+                    onClick={handleSaveAddress}
                     disabled={loadingAddress}
                     size="sm"
                     className="gap-2"
                   >
-                    <FiSave /> {loadingAddress ? 'Salvando...' : 'Salvar'}
+                    <FiSave /> {loadingAddress ? "Salvando..." : "Salvar"}
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={handleCancelAddress}
                     disabled={loadingAddress}
                     size="sm"
@@ -798,10 +896,15 @@ export function ProfilePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  CEP {loadingCep && <span className="text-blue-600 text-xs ml-2">🔍 Buscando...</span>}
+                  CEP{" "}
+                  {loadingCep && (
+                    <span className="text-blue-600 text-xs ml-2">
+                      🔍 Buscando...
+                    </span>
+                  )}
                 </label>
-                <Input 
-                  value={addressData.cep} 
+                <Input
+                  value={addressData.cep}
                   onChange={(e) => handleCepChange(e.target.value)}
                   disabled={!isEditingAddress || loadingCep}
                   placeholder="00000-000"
@@ -816,9 +919,11 @@ export function ProfilePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Logradouro
                 </label>
-                <Input 
-                  value={addressData.logradouro} 
-                  onChange={(e) => handleAddressChange('logradouro', e.target.value)}
+                <Input
+                  value={addressData.logradouro}
+                  onChange={(e) =>
+                    handleAddressChange("logradouro", e.target.value)
+                  }
                   disabled={!isEditingAddress}
                   placeholder="Rua, Avenida, etc."
                 />
@@ -828,9 +933,11 @@ export function ProfilePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Número
                 </label>
-                <Input 
-                  value={addressData.numero} 
-                  onChange={(e) => handleAddressChange('numero', e.target.value)}
+                <Input
+                  value={addressData.numero}
+                  onChange={(e) =>
+                    handleAddressChange("numero", e.target.value)
+                  }
                   disabled={!isEditingAddress}
                   placeholder="123"
                 />
@@ -840,9 +947,11 @@ export function ProfilePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Bairro
                 </label>
-                <Input 
-                  value={addressData.bairro} 
-                  onChange={(e) => handleAddressChange('bairro', e.target.value)}
+                <Input
+                  value={addressData.bairro}
+                  onChange={(e) =>
+                    handleAddressChange("bairro", e.target.value)
+                  }
                   disabled={!isEditingAddress}
                   placeholder="Centro"
                 />
@@ -855,16 +964,16 @@ export function ProfilePage() {
                 </label>
                 {isEditingAddress ? (
                   <select
-                    value={selectedStateId || ''}
+                    value={selectedStateId || ""}
                     onChange={async (e) => {
                       const stateId = Number(e.target.value);
                       setSelectedStateId(stateId);
                       setSelectedCityId(null);
-                      
+
                       // Buscar nome do estado
-                      const state = states.find(s => s.id === stateId);
+                      const state = states.find((s) => s.id === stateId);
                       if (state) {
-                        handleAddressChange('estado', state.uf);
+                        handleAddressChange("estado", state.uf);
                         // Carregar cidades desse estado
                         await loadCitiesByState(stateId);
                       }
@@ -872,15 +981,15 @@ export function ProfilePage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Selecione um estado</option>
-                    {states.map(state => (
+                    {states.map((state) => (
                       <option key={state.id} value={state.id}>
                         {state.uf} - {state.nome}
                       </option>
                     ))}
                   </select>
                 ) : (
-                  <Input 
-                    value={addressData.estado} 
+                  <Input
+                    value={addressData.estado}
                     disabled
                     className="bg-gray-50"
                   />
@@ -894,55 +1003,58 @@ export function ProfilePage() {
                 </label>
                 {isEditingAddress ? (
                   <select
-                    value={selectedCityId || ''}
+                    value={selectedCityId || ""}
                     onChange={(e) => {
                       const cityId = Number(e.target.value);
                       setSelectedCityId(cityId);
-                      
+
                       // Buscar nome da cidade
-                      const city = cities.find(c => c.id === cityId);
+                      const city = cities.find((c) => c.id === cityId);
                       if (city) {
-                        handleAddressChange('cidade', city.nome);
+                        handleAddressChange("cidade", city.nome);
                       }
                     }}
                     disabled={!selectedStateId}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                   >
                     <option value="">Selecione uma cidade</option>
-                    {cities.map(city => (
+                    {cities.map((city) => (
                       <option key={city.id} value={city.id}>
                         {city.nome}
                       </option>
                     ))}
                   </select>
                 ) : (
-                  <Input 
-                    value={addressData.cidade} 
+                  <Input
+                    value={addressData.cidade}
                     disabled
                     className="bg-gray-50"
                   />
                 )}
                 {isEditingAddress && !selectedStateId && (
-                  <p className="text-xs text-amber-600 mt-1">Selecione um estado primeiro</p>
+                  <p className="text-xs text-amber-600 mt-1">
+                    Selecione um estado primeiro
+                  </p>
                 )}
               </div>
             </div>
-            
+
             {/* Avisos e mensagens */}
             {!addressData.id && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <p className="text-sm text-blue-800">
-                  <strong>ℹ️ Informação:</strong> Nenhum endereço cadastrado. 
-                  O endereço foi criado durante o cadastro inicial.
+                  <strong>ℹ️ Informação:</strong> Nenhum endereço cadastrado. O
+                  endereço foi criado durante o cadastro inicial.
                 </p>
               </div>
             )}
-            
+
             {isEditingAddress && addressData.id && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <p className="text-sm text-yellow-800">
-                  <strong>💡 Dica:</strong> Você pode digitar o CEP para preencher automaticamente, 
-                  ou selecionar Estado e Cidade manualmente nos campos acima.
+                  <strong>💡 Dica:</strong> Você pode digitar o CEP para
+                  preencher automaticamente, ou selecionar Estado e Cidade
+                  manualmente nos campos acima.
                 </p>
               </div>
             )}
@@ -961,20 +1073,17 @@ export function ProfilePage() {
               <strong>⚠️ Atenção:</strong> Esta ação é irreversível!
             </p>
             <p className="text-sm text-red-700">
-              Ao excluir sua conta, todos os seus dados serão permanentemente removidos, 
-              incluindo histórico de caronas, veículos cadastrados e informações pessoais.
+              Ao excluir sua conta, todos os seus dados serão permanentemente
+              removidos, incluindo histórico de caronas, veículos cadastrados e
+              informações pessoais.
             </p>
           </div>
 
-          <Button
-            onClick={() => setShowDeleteModal(true)}
-            variant="danger"
-          >
+          <Button onClick={() => setShowDeleteModal(true)} variant="danger">
             <FiTrash2 className="w-4 h-4 mr-2" />
             Excluir minha conta
           </Button>
         </Card>
-
       </div>
 
       {/* Modal de Confirmação de Exclusão */}
@@ -986,8 +1095,12 @@ export function ProfilePage() {
                 <FiAlertTriangle className="w-6 h-6 text-red-600" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-900">Confirmar Exclusão</h3>
-                <p className="text-sm text-gray-600">Esta ação não pode ser desfeita</p>
+                <h3 className="text-xl font-bold text-gray-900">
+                  Confirmar Exclusão
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Esta ação não pode ser desfeita
+                </p>
               </div>
             </div>
 
@@ -1014,7 +1127,7 @@ export function ProfilePage() {
                 variant="danger"
                 className="flex-1"
               >
-                {loading ? 'Excluindo...' : 'Sim, excluir conta'}
+                {loading ? "Excluindo..." : "Sim, excluir conta"}
               </Button>
             </div>
           </Card>
