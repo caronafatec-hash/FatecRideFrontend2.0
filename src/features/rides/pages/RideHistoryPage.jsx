@@ -9,7 +9,7 @@ import { ridesService } from "@features/rides/services/ridesService";
 import { useAuthStore } from "@features/auth/stores/authStore";
 import { toast } from "react-hot-toast";
 import { FiClock } from "react-icons/fi";
-
+import { BASE_URL_JAVA_BACKEND } from "./../../../../api.js";
 /**
  * RideHistoryPage - Histórico de caronas
  * Mostra todas as caronas passadas (concluídas ou canceladas)

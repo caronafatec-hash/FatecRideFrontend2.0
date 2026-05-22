@@ -10,7 +10,7 @@ import { Spinner } from "@shared/components/ui/Spinner";
 import { useAuthStore } from "@features/auth/stores/authStore";
 import { SimpleChatModal } from "@features/chat/components/SimpleChatModal";
 import { sendRideAcceptedMessage } from "@features/chat/services/autoMessageService";
-
+import { BASE_URL_JAVA_BACKEND } from "./../../../../api.js";
 /**
  * ActiveRidesPage - Página de gerenciamento de caronas ativas
  *

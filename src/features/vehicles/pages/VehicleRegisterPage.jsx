@@ -8,7 +8,7 @@ import { Button } from "@shared/components/ui/Button";
 import { Alert } from "@shared/components/ui/Alert";
 import { Card } from "@shared/components/ui/Card";
 import api from "@shared/lib/api";
-
+import { BASE_URL_JAVA_BACKEND } from "./../../../../api.js";
 /**
  * VehicleRegisterPage - Página de cadastro de veículo durante o registro
  *
